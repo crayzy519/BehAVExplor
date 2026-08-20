@@ -14,7 +14,6 @@ from behavexplor.utils import create_path
 from behavexplor.corpus import InputCorpus
 
 from common.runner import Runner
-from common.simulator import Simulator
 from common.scenario import Scenario
 
 level = "INFO"
@@ -34,7 +33,14 @@ class Fuzzer(object):
             os.makedirs(self.output_path)
 
         create_path(self.output_path)
-        self.sim = Simulator(self.cfgs['max_sim_time'], self.cfgs['lgsvl_map'], self.cfgs['apollo_map'], sim_mode=self.cfgs['sim_mode'])
+        # sim_mode 'mock' runs without a real CARLA/Apollo stack (no lgsvl/carla
+        # import needed); any other mode uses the real Simulator.
+        if self.cfgs['sim_mode'] == 'mock':
+            from common.mock_carla import MockSimulator
+            self.sim = MockSimulator(self.cfgs['max_sim_time'], self.cfgs['lgsvl_map'], self.cfgs['apollo_map'], sim_mode=self.cfgs['sim_mode'])
+        else:
+            from common.simulator import Simulator
+            self.sim = Simulator(self.cfgs['max_sim_time'], self.cfgs['lgsvl_map'], self.cfgs['apollo_map'], sim_mode=self.cfgs['sim_mode'])
 
     def loop(self, time_limitation):
 
