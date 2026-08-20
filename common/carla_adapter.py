@@ -1,108 +1,101 @@
 """
-CARLA -> BehAVExplor state adapter.
+Feed objects.json into CARLA, read traces.json back, and convert to LGSVL-shaped state/bbox objects frame.py already knows how to consume.
+    Scenario -> lgsvl_input -> objects.json   (common/objects_writer.py)
+                                    |
+                             common/mock_bridge.py   <- stand-in for
+                                    |                    real CARLA + carla_bridge
+                                trace.json
+                                    |
+                          common/trace_adapter.py -> LGSVL-shaped state/bbox
+                                    |
+                             common/frame.py (unchanged fuzzing core)
 
-BehAVExplor's frame.py / utils.py were written for LGSVL and read agent state as:
-    state.transform.position.x / .y / .z
-    state.transform.rotation.x / .y / .z      (rotation.y = heading in DEGREES)
-    state.velocity.x / .y / .z
-    state.angular_velocity.x / .y / .z
-and bounding boxes as:
-    bbox.min.{x,y,z} / bbox.max.{x,y,z}       (vehicle-local)
-
-CARLA exposes different objects (carla.Transform.location/.rotation.yaw,
-carla.Actor.get_velocity(), bounding_box.extent). This module converts the
-former into the latter. It is the single seam between CARLA and the unchanged
-fuzzing core, so BOTH the real CARLA world and the MockCarlaWorld go through it.
-
-Axis mapping (CARLA -> LGSVL/BehAVExplor)
------------------------------------------
-BehAVExplor's oracles operate in the (x, z) ground plane with rotation.y as the
-heading. CARLA's ground plane is (x, y) with yaw as the heading, and CARLA is
-left-handed. Following the bridge convention
-(carla_bridge/actor/traffic_participant.py:78, which negates location.y), we map:
-
-    LGSVL.transform.position.x  <-  carla.location.x
-    LGSVL.transform.position.z  <-  -carla.location.y     (flip -> right-handed)
-    LGSVL.transform.position.y  <-  carla.location.z       (up axis; unused by oracles)
-    LGSVL.transform.rotation.y  <-  -carla.rotation.yaw    (heading, degrees)
-    LGSVL.velocity.x            <-  carla.velocity.x
-    LGSVL.velocity.z            <-  -carla.velocity.y
-    LGSVL.angular_velocity.*    <-  carla.angular_velocity.* (z flipped)
-
-bbox: CARLA gives half-extents; LGSVL wants min/max. length=extent.x*2 (fwd=x),
-width=extent.y*2 (lateral=z in LGSVL frame), height=extent.z*2 (up=y).
+Swapping in the real simulator later means replacing mock_bridge.run() with "send objects.json to CARLA/carla_bridge, wait, read the trace.json it
+writes" - objects_writer.py and trace_adapter.py (the two real seams) do not change.
 """
+import json
+import os
+
+from loguru import logger
+
+from common.frame import CaseRecorder, FrameElement
+from common import objects_writer, mock_bridge, trace_adapter
 
 
-class _V3(object):
-    __slots__ = ("x", "y", "z")
-
-    def __init__(self, x=0.0, y=0.0, z=0.0):
-        self.x = float(x)
-        self.y = float(y)
-        self.z = float(z)
+def _lines_to_xz(lines):
+    """[[{x,y}, ...]] -> [[(x, z), ...]]; z = world y (see trace_adapter docstring)."""
+    return [[(p["x"], p["y"]) for p in line] for line in lines]
 
 
-class _Transform(object):
-    __slots__ = ("position", "rotation")
+def detect_violation(frame, case_dir):
+    """Per-frame violation check fed into CaseRecorder.add_frame(collision=...).
 
-    def __init__(self, position, rotation):
-        self.position = position
-        self.rotation = rotation
-
-
-class LGSVLState(object):
-    """LGSVL-shaped agent state consumed by frame.py / utils.py (unchanged)."""
-
-    __slots__ = ("transform", "velocity", "angular_velocity")
-
-    def __init__(self, transform, velocity, angular_velocity):
-        self.transform = transform
-        self.velocity = velocity
-        self.angular_velocity = angular_velocity
+    Mock has no physics/Apollo stack, so there is nothing to detect: always
+    False. Swap this out for the real Apollo/CARLA violation-detection logic
+    when adapting the real bridge - it only needs to keep returning a plain
+    bool per frame. frame.py's termination condition and is_fail()'s
+    CaseFaultType.COLLISION check already key off that single boolean, so
+    nothing downstream needs to change.
+    """
+    return False
 
 
-class LGSVLBBox(object):
-    """LGSVL-shaped bounding box: .min / .max as vehicle-local _V3."""
+class CarlaSimulatorAdapter(object):
 
-    __slots__ = ("min", "max")
+    def __init__(self, max_sim_time, lgsvl_map=None, apollo_map=None, sim_mode="mock", dt=0.1):
+        self.max_sim_time = max_sim_time
+        self.dt = dt
+        logger.info("[CarlaSimulatorAdapter] init: objects.json/trace.json mock loop. map=%s mode=%s"
+                    % (lgsvl_map, sim_mode))
 
-    def __init__(self, min_v, max_v):
-        self.min = min_v
-        self.max = max_v
+    def run(self, scenario_obj, scenario_id, record_apollo_path):
+        lgsvl_input = scenario_obj.get_lgsvl_input()
+        objects_json = objects_writer.build_objects_json(lgsvl_input)
 
+        case_dir = os.path.join(record_apollo_path, scenario_id)
+        os.makedirs(case_dir, exist_ok=True)
+        with open(os.path.join(case_dir, "objects.json"), "w") as f:
+            json.dump(objects_json, f, indent=2)
 
-def state_from_carla(carla_actor):
-    """carla.Actor -> LGSVLState. Works for real and mock actors alike."""
-    tf = carla_actor.get_transform()
-    vel = carla_actor.get_velocity()
-    ang = carla_actor.get_angular_velocity()
+        # 此处改为真实bridge
+        mock_bridge.run(objects_json, self.max_sim_time, case_dir, self.dt)
+        with open(os.path.join(case_dir, "trace.json")) as f:
+            trace = json.load(f)
 
-    position = _V3(tf.location.x, tf.location.z, -tf.location.y)
-    # rotation.y carries heading in degrees (LGSVL convention)
-    rotation = _V3(0.0, -tf.rotation.yaw, 0.0)
-    transform = _Transform(position, rotation)
+        ego_cfg = next(o for o in objects_json["ego"] if "dest_point" in o)
+        destination = trace_adapter.world_point_to_destination(
+            ego_cfg["dest_point"]["x"], ego_cfg["dest_point"]["y"])
 
-    velocity = _V3(vel.x, 0.0, -vel.y)
-    angular_velocity = _V3(ang.x, ang.z, -ang.y)
+        case_recorder = CaseRecorder(scenario_id)
+        case_recorder.set_destination(destination)
 
-    return LGSVLState(transform, velocity, angular_velocity)
+        yellow = _lines_to_xz(lgsvl_input["yellow_lines"])
+        edge = _lines_to_xz(lgsvl_input["edge_lines"])
+        cross = _lines_to_xz(lgsvl_input["cross_lines"])
 
+        for frame in trace:
+            ego_state = trace_adapter.state_from_trace(frame["EGO"])
+            ego_bbox = trace_adapter.bbox_from_trace(frame["EGO"])
+            frame_npc_info = [
+                {"npc_id": i, "npc_bbox": trace_adapter.bbox_from_trace(npc),
+                 "npc_state": trace_adapter.state_from_trace(npc)}
+                for i, npc in enumerate(frame["NPCs"])
+            ]
 
-def bbox_from_carla(carla_actor):
-    """carla.Actor.bounding_box (half-extents) -> LGSVLBBox (min/max local)."""
-    e = carla_actor.bounding_box.extent
-    # LGSVL local axes: x=length(fwd), y=height(up), z=width(lateral)
-    min_v = _V3(-e.x, 0.0, -e.y)
-    max_v = _V3(e.x, e.z * 2.0, e.y)
-    return LGSVLBBox(min_v, max_v)
+            frame_element = FrameElement(
+                frame["Sequence"], frame["TimeStamp"], destination, ego_bbox, ego_state,
+                frame_npc_info, yellow, edge, cross,
+            )
+            violation = detect_violation(frame, case_dir)
+            _, end = case_recorder.add_frame(frame_element, collision=violation)
+            if end:
+                break
 
+        case_recorder.offline_analyze()
+        logger.info("[CarlaSimulatorAdapter] %s: %d frames, events=[%s]"
+                    % (scenario_id, len(case_recorder.frames),
+                       case_recorder.obtain_case_event_str()))
+        return case_recorder
 
-def location_to_dest(carla_location):
-    """carla.Location -> object with .x/.z for CaseRecorder.set_destination."""
-    class _Dest(object):
-        __slots__ = ("x", "z")
-    d = _Dest()
-    d.x = carla_location.x
-    d.z = -carla_location.y
-    return d
+    def close(self):
+        logger.info("[CarlaSimulatorAdapter] closed.")

@@ -12,3 +12,7 @@ outputs/
 
 # Editor
 .cursor/
+
+# Real CARLA bridge (reference only, not part of this migration)
+carla_bridge/
+trace.json.txt

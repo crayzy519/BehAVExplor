@@ -360,19 +360,17 @@ class FrameElement(object):
         # compute NPC distance
         adjust_ego_bbox = utils.get_bbox(self.ego_state, self.ego_bbox)
 
-        if self.online_event == FrameEventType.COLLISION:
-            self.min_distance2NPCs = 0.0
-            self.offline_event.append(FrameEventType.COLLISION)
-        else:
-            for i in range(len(self.npc_info)):
-                adjust_npc_bbox = utils.get_bbox(self.npc_info[i]['npc_state'], self.npc_info[i]['npc_bbox'])
-                distance2npc_i = adjust_ego_bbox.distance(adjust_npc_bbox)
-                if distance2npc_i < self.min_distance2NPCs:
-                    self.min_distance2NPCs = distance2npc_i
-                self.distance2NPCs.append(distance2npc_i)
+        for i in range(len(self.npc_info)):
+            adjust_npc_bbox = utils.get_bbox(self.npc_info[i]['npc_state'], self.npc_info[i]['npc_bbox'])
+            distance2npc_i = adjust_ego_bbox.distance(adjust_npc_bbox)
+            if distance2npc_i < self.min_distance2NPCs:
+                self.min_distance2NPCs = distance2npc_i
+            self.distance2NPCs.append(distance2npc_i)
 
-            if 0 < self.min_distance2NPCs < 0.5:
-                self.offline_event.append(FrameEventType.DANGER_DISTANCE)
+        if self.online_event == FrameEventType.COLLISION:
+            self.offline_event.append(FrameEventType.COLLISION)
+        elif 0 < self.min_distance2NPCs < 0.5:
+            self.offline_event.append(FrameEventType.DANGER_DISTANCE)
 
         # compute yellow line distance
         for yellow_line in self.yellow_lines:

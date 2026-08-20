@@ -36,8 +36,8 @@ class Fuzzer(object):
         # sim_mode 'mock' runs without a real CARLA/Apollo stack (no lgsvl/carla
         # import needed); any other mode uses the real Simulator.
         if self.cfgs['sim_mode'] == 'mock':
-            from common.mock_carla import MockSimulator
-            self.sim = MockSimulator(self.cfgs['max_sim_time'], self.cfgs['lgsvl_map'], self.cfgs['apollo_map'], sim_mode=self.cfgs['sim_mode'])
+            from common.carla_adapter import CarlaSimulatorAdapter
+            self.sim = CarlaSimulatorAdapter(self.cfgs['max_sim_time'], self.cfgs['lgsvl_map'], self.cfgs['apollo_map'], sim_mode=self.cfgs['sim_mode'])
         else:
             from common.simulator import Simulator
             self.sim = Simulator(self.cfgs['max_sim_time'], self.cfgs['lgsvl_map'], self.cfgs['apollo_map'], sim_mode=self.cfgs['sim_mode'])
