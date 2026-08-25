@@ -7,6 +7,8 @@
 
 `traffic_rule_BehAVExplor/`下是47个人工设计、针对具体交规的真实场景，每个场景固定了ego和NPC的真实世界坐标起止点（`objects.json`）以及CARLA连接配置（`settings.yaml`）。`tools/convert_traffic_rule_scenario.py`把这些世界坐标转换成BehAVExplor原生认识的`lane_id`+`offset`格式，尽量还原真实场景，作为fuzzing的初始种子。
 
+转换后的场景文件写在 `data/<town>/LawXX_basic_info.json`，配置文件在`configs/mock_<town>_<lawXX>.yaml`（比如`configs/mock_town05_law44.yaml`）。
+
 运行：
 
 ```bash
@@ -72,7 +74,7 @@ common/frame.py (行为 oracle)
 - `tools/gen_town01_routes.py`：从Apollo HD地图JSON生成`data/<town>/`路网（`lane_details`/`route_details`/`routes`），支持`--map-json`/`--town`/`--out-dir`参数，可以对任意城镇重复使用（目前已生成Town01/Town04/Town05）。
 - `tools/convert_traffic_rule_scenario.py`：把`traffic_rule_BehAVExplor/`里人工设计的真实场景（世界坐标ego/NPC起止点）转换成`data/<town>/LawXX_basic_info.json`种子，NPC需要变道时会额外生成一个`synthetic_lanes`合成车道，详见上面"8.24更新"一节。
 - `tools/verify_traffic_rule_conversion.py`：对比转换出的坐标和真实数据的坐标误差
-- `configs/mock_town01.yaml`：mock 测试配置；`configs/mock_town01_law{1,2,27}.yaml`：转换出的3个Town01场景的对应配置。
+- `configs/mock_town01.yaml`：mock 测试配置；`configs/mock_<town>_<lawXX>.yaml`：42个转换出的场景各自对应的配置。
 
 ## 三、对接真实模拟器时的待办
 
