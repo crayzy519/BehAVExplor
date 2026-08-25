@@ -135,6 +135,14 @@ class Scenario(object):
         self.environment = basic_info['environment']
         logger.info('[Scenario] OK - Generate specific scenario wo NPCs.')
 
+    def add_synthetic_lanes(self, lanes_dict):
+        """Merge scenario-specific synthetic lanes (e.g. a lane-change route
+        flattened into one lane by tools/convert_traffic_rule_scenario.py's
+        build_virtual_lane) into self.lanes, so npc_routes referencing them
+        resolve normally. Scoped to this Scenario instance only - doesn't
+        touch the shared data/<town>/<town>_routes.json lane pool."""
+        self.lanes.update(lanes_dict)
+
     def mutation_route(self):
         offset_recorder = copy.deepcopy(self.ego_offset_recorder)
         for i in range(self.npc_size):
@@ -150,6 +158,22 @@ class Scenario(object):
                         npc_i_offset_speed.append([])
                 npc_i_offset_speed, offset_recorder = self._uniform_mutation(npc_i_route, offset_recorder)
                 self.npc_waypoints[i] = npc_i_offset_speed
+
+    def set_fixed_npc_info(self, npc_types, npc_routes, npc_waypoints):
+        """Seed NPCs from a converted real scenario instead of random generation.
+
+        npc_routes[i] is a lane_id chain and npc_waypoints[i] is a flat list
+        of [offset, speed] pairs, self.waypoint_num pairs per lane in that
+        chain - offset is cumulative arc-length across the chain, matching
+        _uniform_mutation's convention. Subsequent
+        mutation_gauss/mutation_uniform calls jitter around these seeded
+        values like any other scenario.
+        """
+        self.npc_types = copy.deepcopy(npc_types)
+        self.npc_routes = copy.deepcopy(npc_routes)
+        self.npc_routes_ids = [None] * self.npc_size
+        self.npc_waypoints = copy.deepcopy(npc_waypoints)
+        logger.info('[Scenario] OK - Set fixed NPC configure from converted scenario.')
 
     def generate_random_abstract_scenario(self):
         self.npc_routes = []

@@ -1,0 +1,166 @@
+{
+  "NPC": [
+    {
+      "type": "vehicle.mini.cooper_s",
+      "role_name": "npc_vehicle_1",
+      "init_location": {
+        "x": 151.51551818847656,
+        "y": 25.684173583984375,
+        "z": 0.4
+      },
+      "init_direction": {
+        "roll": 0.10052294284105301,
+        "pitch": -0.137785404920578,
+        "yaw": -89.94178771972656
+      },
+      "dest_location": {
+        "x": 151.5457305908203,
+        "y": -19.150344848632812,
+        "z": 0.4
+      },
+      "max_throttle": 0.75,
+      "max_brake": 0.3,
+      "max_steer": 0.8,
+      "is_follow_speed_limits": 0,
+      "speed": 5.555555555555555
+    }
+  ],
+  "ego": [
+    {
+      "type": "sensor.pseudo.traffic_lights",
+      "id": "traffic_lights"
+    },
+    {
+      "type": "vehicle.lincoln.mkz_2017",
+      "id": "ego_vehicle",
+      "vehicle_name": "Lincoln2017MKZ",
+      "spawn_point": {
+        "x": 131.03817749023438,
+        "y": -1.27275276184082,
+        "z": 0.4,
+        "roll": 1.9443985365796834e-05,
+        "pitch": 0.005682717077434063,
+        "yaw": 0.04014587402344
+      },
+      "init_velocity": {},
+      "dest_point": {
+        "x": 154.5457305908203,
+        "y": 39.15034484863281,
+        "z": 0.4,
+        "roll": 0.2599194049835205,
+        "pitch": -0.09673596173524857,
+        "yaw": 90.08944702148438
+      },
+      "sensors": [
+        {
+          "type": "sensor.camera.rgb",
+          "id": "front_6mm",
+          "spawn_point": {
+            "x": 2.0,
+            "y": 0.0,
+            "z": 2.0,
+            "roll": 0.0,
+            "pitch": 0.0,
+            "yaw": 0.0
+          },
+          "image_size_x": 800,
+          "image_size_y": 600,
+          "fov": 90.0,
+          "fstop": 8.0
+        },
+        {
+          "type": "sensor.camera.rgb",
+          "id": "front_12mm",
+          "spawn_point": {
+            "x": 2.5,
+            "y": 0.0,
+            "z": 2.8,
+            "roll": 0.0,
+            "pitch": 0.0,
+            "yaw": 0.0
+          },
+          "image_size_x": 800,
+          "image_size_y": 600,
+          "focal_distance": 2000,
+          "fov": 90.0,
+          "fstop": 8.0
+        },
+        {
+          "type": "sensor.lidar.ray_cast",
+          "id": "lidar128",
+          "spawn_point": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 2.4,
+            "roll": 0.0,
+            "pitch": 0.0,
+            "yaw": 0.0
+          },
+          "range": 50,
+          "channels": 128,
+          "points_per_second": 320000,
+          "upper_fov": 2.0,
+          "lower_fov": -26.8,
+          "rotation_frequency": 20,
+          "noise_stddev": 0.0
+        },
+        {
+          "type": "sensor.other.radar",
+          "id": "radar/front",
+          "spawn_point": {
+            "x": 2.0,
+            "y": 0.0,
+            "z": 2.0,
+            "roll": 0.0,
+            "pitch": 0.0,
+            "yaw": 0.0
+          },
+          "horizontal_fov": 30.0,
+          "vertical_fov": 10.0,
+          "points_per_second": 1500,
+          "range": 100.0
+        },
+        {
+          "type": "sensor.other.gnss",
+          "id": "gnss",
+          "spawn_point": {
+            "x": 1.0,
+            "y": 0.0,
+            "z": 2.0
+          },
+          "noise_alt_stddev": 0.0,
+          "noise_lat_stddev": 0.0,
+          "noise_lon_stddev": 0.0,
+          "noise_alt_bias": 0.0,
+          "noise_lat_bias": 0.0,
+          "noise_lon_bias": 0.0
+        },
+        {
+          "type": "sensor.other.imu",
+          "id": "gnss/imu",
+          "spawn_point": {
+            "x": 2.0,
+            "y": 0.0,
+            "z": 2.0,
+            "roll": 0.0,
+            "pitch": 0.0,
+            "yaw": 0.0
+          },
+          "noise_accel_stddev_x": 0.0,
+          "noise_accel_stddev_y": 0.0,
+          "noise_accel_stddev_z": 0.0,
+          "noise_gyro_stddev_x": 0.0,
+          "noise_gyro_stddev_y": 0.0,
+          "noise_gyro_stddev_z": 0.0,
+          "noise_gyro_bias_x": 0.0,
+          "noise_gyro_bias_y": 0.0,
+          "noise_gyro_bias_z": 0.0
+        },
+        {
+          "type": "sensor.pseudo.objects",
+          "id": "obstacles"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+LAW_NAME =  "Oracle.benchmark.traffic_law-14"
+LAW_ORACLE_ID = "rule-0"
+LAW_CONTENT = "When approaching an intersection, EGO should yield the right-of-way to a pedestrian."
+DECISION_API_TYPE = "Yield"
+XODR_FILE_PATH = "ADSFuzzing/xodr/14_Town05.xodr"
+CARLA_BASEMAP_PATH = "ADSFuzzing/utils/carla_base_map/Town05.bin"
+MAP_NAME = "Town05"

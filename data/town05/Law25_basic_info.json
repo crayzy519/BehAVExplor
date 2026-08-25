@@ -1,0 +1,61 @@
+[
+  {
+    "name": "Law25",
+    "map": "Town05",
+    "settings_yaml": "traffic_rule_BehAVExplor/Law25/settings.yaml",
+    "ego": {
+      "agent_type": "2e966a70-4a19-44b5-a5e7-64e00a7bc5de",
+      "start": {
+        "lane_id": "road_38_lane_0_-2",
+        "offset": 236.3
+      },
+      "destination": {
+        "lane_id": "road_12_lane_0_-2",
+        "offset": 11.86
+      }
+    },
+    "npcs": {
+      "waypoint": 2,
+      "npc_num": 1
+    },
+    "environment": {
+      "rain": 0,
+      "fog": 0,
+      "wetness": 0,
+      "cloudiness": 0,
+      "damage": 0,
+      "time": 0
+    },
+    "fixed_npc": {
+      "types": [
+        "Sedan"
+      ],
+      "routes": [
+        [
+          "road_38_lane_0_-2",
+          "road_12_lane_0_-2"
+        ]
+      ],
+      "waypoints": [
+        [
+          [
+            276.3,
+            0.0
+          ],
+          [
+            308.45,
+            0.0
+          ],
+          [
+            308.45,
+            0.0
+          ],
+          [
+            316.31,
+            0.0
+          ]
+        ]
+      ]
+    }
+  }
+]

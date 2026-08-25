@@ -1,25 +1,32 @@
 """
 Generate BehAVExplor routes.json + basic_info.json from carla_bridge's Apollo HD map.
 
-Input : carla_bridge/map.json  (Town01 Apollo HD Map; coords already CARLA world coords)
-Output: data/town01/town01_routes.json      (lane_details / route_details / routes)
-        data/town01/town01_basic_info.json   (ego start/dest + npc + environment)
+Input : an Apollo HD map JSON (coords already CARLA world coords)
+Output: data/<town>/<town>_routes.json       (lane_details / route_details / routes)
+        data/<town>/<town>_basic_info.json   (ego start/dest + npc + environment)
 
 Notes
 -----
 * BehAVExplor's scenario.py only accepts boundary types CURB / DOUBLE_YELLOW /
-  DOTTED_WHITE (it raises on anything else). Apollo Town01 only carries
-  UNKNOWN / DOTTED_YELLOW, so we map:
+  DOTTED_WHITE (it raises on anything else). Apollo maps in this repo only
+  carry UNKNOWN / DOTTED_YELLOW, so we map:
       DOTTED_YELLOW -> DOUBLE_YELLOW   (center divider -> yellow oracle line)
       UNKNOWN       -> CURB            (road edge      -> edge oracle line)
 * Only CITY_DRIVING lanes are exported (mutation samples driving lanes only).
 * central.points / boundary.points drop z; keep {x, y}.
+* carla_bridge/Oracle/CarlaTest/map_json/*.json are corrupted (every point's
+  y is 0) - use carla_bridge/Oracle/CarlaTest/map_json_bak/*.json instead.
+
+Usage: python3 tools/gen_town01_routes.py [--map-json PATH] [--town NAME] [--out-dir DIR]
+Defaults to Town01 / carla_bridge/map.json for backward compatibility.
 """
+import argparse
 import json
 import os
 
-MAP_JSON = "/Users/z.yin/agent-research/carla_bridge/map.json"
-OUT_DIR = "/Users/z.yin/agent-research/BehAVExplor/data/town01"
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DEFAULT_MAP_JSON = os.path.join(REPO_ROOT, "carla_bridge", "map.json")
+DEFAULT_TOWN = "Town01"
 
 BOUNDARY_TYPE_MAP = {
     "DOTTED_YELLOW": "DOUBLE_YELLOW",
@@ -124,18 +131,27 @@ def build_routes(lane_details, max_hops=3, max_routes=40):
 
 
 def main():
-    m = json.load(open(MAP_JSON))
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--map-json", default=DEFAULT_MAP_JSON)
+    parser.add_argument("--town", default=DEFAULT_TOWN, help="e.g. Town01, Town04, Town05")
+    parser.add_argument("--out-dir", default=None, help="defaults to data/<town lowercased>")
+    args = parser.parse_args()
+
+    town_slug = args.town.lower()
+    out_dir = args.out_dir or os.path.join(REPO_ROOT, "data", town_slug)
+
+    m = json.load(open(args.map_json))
     lane_list = m["laneList"]
     lane_details = build_lane_details(lane_list)
     route_details, routes = build_routes(lane_details)
 
-    os.makedirs(OUT_DIR, exist_ok=True)
+    os.makedirs(out_dir, exist_ok=True)
     routes_obj = {
         "lane_details": lane_details,
         "route_details": route_details,
         "routes": routes,
     }
-    with open(os.path.join(OUT_DIR, "town01_routes.json"), "w") as f:
+    with open(os.path.join(out_dir, "%s_routes.json" % town_slug), "w") as f:
         json.dump(routes_obj, f, indent=1)
 
     # pick a long straight lane for ego (start == dest lane, offsets inside length)
@@ -143,8 +159,8 @@ def main():
     ego_len = lane_details[ego_lane]["central"]["length"]
     basic = [
         {
-            "name": "town01_straight",
-            "map": "Town01",
+            "name": "%s_straight" % town_slug,
+            "map": args.town,
             "ego": {
                 "agent_type": "2e966a70-4a19-44b5-a5e7-64e00a7bc5de",
                 "start": {"lane_id": ego_lane, "offset": 10},
@@ -157,12 +173,12 @@ def main():
             },
         }
     ]
-    with open(os.path.join(OUT_DIR, "town01_basic_info.json"), "w") as f:
+    with open(os.path.join(out_dir, "%s_basic_info.json" % town_slug), "w") as f:
         json.dump(basic, f, indent=4)
 
     print("lanes:", len(lane_details), "| routes:", len(routes))
     print("ego lane:", ego_lane, "len:", round(ego_len, 1))
-    print("wrote", OUT_DIR)
+    print("wrote", out_dir)
 
 
 if __name__ == "__main__":

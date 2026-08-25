@@ -15,6 +15,7 @@ writes" - objects_writer.py and trace_adapter.py (the two real seams) do not cha
 """
 import json
 import os
+import shutil
 
 from loguru import logger
 
@@ -45,8 +46,15 @@ class CarlaSimulatorAdapter(object):
     def __init__(self, max_sim_time, lgsvl_map=None, apollo_map=None, sim_mode="mock", dt=0.1):
         self.max_sim_time = max_sim_time
         self.dt = dt
+        self.settings_yaml = None
         logger.info("[CarlaSimulatorAdapter] init: objects.json/trace.json mock loop. map=%s mode=%s"
                     % (lgsvl_map, sim_mode))
+
+    def set_settings_yaml(self, settings_yaml_path):
+        """Real bridge's scenario_executor.py reads settings.yaml + objects.json from
+        the same --scene_dir, so we copy the scenario's settings.yaml as-is into every
+        case_dir alongside the objects.json we generate."""
+        self.settings_yaml = settings_yaml_path
 
     def run(self, scenario_obj, scenario_id, record_apollo_path):
         lgsvl_input = scenario_obj.get_lgsvl_input()
@@ -56,6 +64,8 @@ class CarlaSimulatorAdapter(object):
         os.makedirs(case_dir, exist_ok=True)
         with open(os.path.join(case_dir, "objects.json"), "w") as f:
             json.dump(objects_json, f, indent=2)
+        if self.settings_yaml:
+            shutil.copy(self.settings_yaml, os.path.join(case_dir, "settings.yaml"))
 
         # 此处改为真实bridge
         mock_bridge.run(objects_json, self.max_sim_time, case_dir, self.dt)

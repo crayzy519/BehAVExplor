@@ -8,6 +8,7 @@ mirrors carla_bridge/config/follow/NPCs.json), each NPC carrying an ordered
 "waypoints" list of {x, y, z, speed}
 """
 import math
+from collections import deque
 
 NPC_BLUEPRINTS = {
     "Sedan": "vehicle.tesla.model3",
@@ -51,17 +52,72 @@ def _point_at_offset(xy, cum, offset):
     return x, y, 0.0
 
 
+def _lane_chain_between(lanes, start_lane_id, end_lane_id, max_hops=15):
+    """BFS over successor AND left/right-neighbor links; [start_lane_id] if
+    they're the same lane. Neighbor links matter because real start/dest
+    lanes often differ only by lane index on the same road (a lane change),
+    which a successor-only search can never reach (lateral, not sequential)."""
+    if start_lane_id == end_lane_id:
+        return [start_lane_id]
+    q = deque([[start_lane_id]])
+    seen = {start_lane_id}
+    while q:
+        chain = q.popleft()
+        if len(chain) > max_hops:
+            continue
+        cur = lanes.get(chain[-1], {})
+        edges = cur.get("successor", []) + cur.get("left_neighbor_lane", []) + cur.get("right_neighbor_lane", [])
+        for succ in edges:
+            sid = succ["id"]
+            if sid not in lanes:
+                continue
+            if sid == end_lane_id:
+                return chain + [sid]
+            if sid not in seen:
+                seen.add(sid)
+                q.append(chain + [sid])
+    raise RuntimeError("No successor/neighbor chain from %s to %s" % (start_lane_id, end_lane_id))
+
+
+def _ego_route_geometry(lgsvl_input):
+    """Used by _ego_geometry to resolve objects.json's spawn/dest points: the
+    lane chain from ego start to destination, its concatenated centerline,
+    and the absolute (chain-wide) arc-length offset of the destination point.
+
+    start.offset/destination.offset in basic_info.json are each local to
+    their own lane. destination's needs to become a chain-wide arc-length:
+    read off cum[] at the point where dest_lane_id's own points begin in
+    the concatenated polyline, rather than summing preceding lanes' full
+    lengths - the chain can include a left/right-neighbor hop (a lane
+    change), which advances almost no arc-length, unlike a successor hop
+    which advances a full lane length."""
+    ego = lgsvl_input["ego"]
+    lanes = lgsvl_input["lanes"]
+    start_lane_id = ego["start"]["lane_id"]
+    dest_lane_id = ego["destination"]["lane_id"]
+    chain = _lane_chain_between(lanes, start_lane_id, dest_lane_id)
+
+    xy = []
+    dest_lane_start_index = 0
+    for lane_id in chain:
+        if lane_id == dest_lane_id:
+            dest_lane_start_index = len(xy)
+        xy.extend(_polyline(lanes[lane_id]["central"]["points"]))
+    cum = _cumulative_lengths(xy)
+
+    abs_dest_offset = cum[dest_lane_start_index] + float(ego["destination"]["offset"])
+    return xy, cum, abs_dest_offset
+
+
 def _ego_geometry(lgsvl_input):
     ego = lgsvl_input["ego"]
     lanes = lgsvl_input["lanes"]
-    lane_id = ego["start"]["lane_id"]
-    xy = _polyline(lanes[lane_id]["central"]["points"])
-    cum = _cumulative_lengths(xy)
+    xy, cum, abs_dest_offset = _ego_route_geometry(lgsvl_input)
 
     start = _point_at_offset(xy, cum, float(ego["start"]["offset"]))
-    dest = _point_at_offset(xy, cum, float(ego["destination"]["offset"]))
+    dest = _point_at_offset(xy, cum, abs_dest_offset)
 
-    speed_limit = float(lanes[lane_id]["speed_limit"])
+    speed_limit = float(lanes[ego["start"]["lane_id"]]["speed_limit"])
     target_speed = min(speed_limit, 8.0) if speed_limit > 0 else 8.0
     return start, dest, target_speed
 

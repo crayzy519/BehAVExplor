@@ -1,0 +1,66 @@
+[
+  {
+    "name": "Law27",
+    "map": "Town01",
+    "settings_yaml": "traffic_rule_BehAVExplor/Law27/settings.yaml",
+    "ego": {
+      "agent_type": "2e966a70-4a19-44b5-a5e7-64e00a7bc5de",
+      "start": {
+        "lane_id": "road_10_lane_0_-1",
+        "offset": 11.12
+      },
+      "destination": {
+        "lane_id": "road_10_lane_0_-1",
+        "offset": 127.48
+      }
+    },
+    "npcs": {
+      "waypoint": 2,
+      "npc_num": 2
+    },
+    "environment": {
+      "rain": 0,
+      "fog": 0,
+      "wetness": 0,
+      "cloudiness": 0,
+      "damage": 0,
+      "time": 0
+    },
+    "fixed_npc": {
+      "types": [
+        "Sedan",
+        "Sedan"
+      ],
+      "routes": [
+        [
+          "road_10_lane_0_1"
+        ],
+        [
+          "road_10_lane_0_-1"
+        ]
+      ],
+      "waypoints": [
+        [
+          [
+            86.63,
+            4.167
+          ],
+          [
+            126.86,
+            0.0
+          ]
+        ],
+        [
+          [
+            31.59,
+            0.0
+          ],
+          [
+            48.59,
+            0.0
+          ]
+        ]
+      ]
+    }
+  }
+]

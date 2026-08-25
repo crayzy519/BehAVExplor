@@ -1,0 +1,98 @@
+[
+  {
+    "name": "Law46",
+    "map": "Town05",
+    "settings_yaml": "traffic_rule_BehAVExplor/Law46/settings.yaml",
+    "ego": {
+      "agent_type": "2e966a70-4a19-44b5-a5e7-64e00a7bc5de",
+      "start": {
+        "lane_id": "road_38_lane_0_-2",
+        "offset": 236.3
+      },
+      "destination": {
+        "lane_id": "road_34_lane_0_-2",
+        "offset": 70.74
+      }
+    },
+    "npcs": {
+      "waypoint": 2,
+      "npc_num": 3
+    },
+    "environment": {
+      "rain": 0,
+      "fog": 0,
+      "wetness": 0,
+      "cloudiness": 0,
+      "damage": 0,
+      "time": 0
+    },
+    "fixed_npc": {
+      "types": [
+        "Sedan",
+        "Sedan",
+        "Sedan"
+      ],
+      "routes": [
+        [
+          "road_38_lane_0_-2",
+          "road_12_lane_0_-2"
+        ],
+        [
+          "road_38_lane_0_-1",
+          "road_12_lane_0_-1"
+        ],
+        [
+          "road_38_lane_0_-3"
+        ]
+      ],
+      "waypoints": [
+        [
+          [
+            286.3,
+            2.778
+          ],
+          [
+            308.45,
+            2.778
+          ],
+          [
+            308.45,
+            2.778
+          ],
+          [
+            316.31,
+            0.0
+          ]
+        ],
+        [
+          [
+            270.79,
+            0.833
+          ],
+          [
+            302.98,
+            0.833
+          ],
+          [
+            302.98,
+            0.833
+          ],
+          [
+            310.79,
+            0.0
+          ]
+        ],
+        [
+          [
+            271.82,
+            1.389
+          ],
+          [
+            281.82,
+            0.0
+          ]
+        ]
+      ]
+    }
+  }
+]
