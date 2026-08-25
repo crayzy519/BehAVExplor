@@ -14,7 +14,6 @@ from behavexplor.utils import create_path
 from behavexplor.corpus import InputCorpus
 
 from common.runner import Runner
-from common.simulator import Simulator
 from common.scenario import Scenario
 
 level = "INFO"
@@ -34,7 +33,14 @@ class Fuzzer(object):
             os.makedirs(self.output_path)
 
         create_path(self.output_path)
-        self.sim = Simulator(self.cfgs['max_sim_time'], self.cfgs['lgsvl_map'], self.cfgs['apollo_map'], sim_mode=self.cfgs['sim_mode'])
+        # sim_mode 'mock' runs without a real CARLA/Apollo stack (no lgsvl/carla
+        # import needed); any other mode uses the real Simulator.
+        if self.cfgs['sim_mode'] == 'mock':
+            from common.carla_adapter import CarlaSimulatorAdapter
+            self.sim = CarlaSimulatorAdapter(self.cfgs['max_sim_time'], self.cfgs['lgsvl_map'], self.cfgs['apollo_map'], sim_mode=self.cfgs['sim_mode'])
+        else:
+            from common.simulator import Simulator
+            self.sim = Simulator(self.cfgs['max_sim_time'], self.cfgs['lgsvl_map'], self.cfgs['apollo_map'], sim_mode=self.cfgs['sim_mode'])
 
     def loop(self, time_limitation):
 
@@ -52,6 +58,10 @@ class Fuzzer(object):
         scenario_basic_info = scenario_basic_info[self.cfgs['ego_behavior']]
         ego_behavior = str(scenario_basic_info['name'])
         logger.info('[Fuzzer] Ego Behavior: ' + ego_behavior)
+
+        settings_yaml = scenario_basic_info.get('settings_yaml')
+        if settings_yaml and hasattr(self.sim, 'set_settings_yaml'):
+            self.sim.set_settings_yaml(settings_yaml)
 
         log_file = os.path.join(self.output_path, 'logs/system.log')
         if os.path.exists(log_file):
@@ -71,11 +81,20 @@ class Fuzzer(object):
 
         init_scenario_obj = Scenario()
         init_scenario_obj.generate_specific_info_wo_npc(scenario_basic_info, scenario_route_info)
+        synthetic_lanes = scenario_basic_info.get('synthetic_lanes')
+        if synthetic_lanes:
+            init_scenario_obj.add_synthetic_lanes(synthetic_lanes)
+        fixed_npc = scenario_basic_info.get('fixed_npc')
         init_scenario_lst = []
         for i in range(self.cfgs['init_seed_size']):
             scenario_obj = copy.deepcopy(init_scenario_obj)
-            scenario_obj.generate_random_abstract_scenario()
-            scenario_obj.generate_random_concrete_scenario()
+            if i == 0 and fixed_npc:
+                # First init seed reproduces the real scenario's recorded NPC
+                # positions; the rest still randomize for population diversity.
+                scenario_obj.set_fixed_npc_info(fixed_npc['types'], fixed_npc['routes'], fixed_npc['waypoints'])
+            else:
+                scenario_obj.generate_random_abstract_scenario()
+                scenario_obj.generate_random_concrete_scenario()
             init_scenario_lst.append(scenario_obj)
 
         init_scenario_recorder_lst = []

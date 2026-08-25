@@ -1,0 +1,88 @@
+[
+  {
+    "name": "Law21",
+    "map": "Town05",
+    "settings_yaml": "traffic_rule_BehAVExplor/Law21/settings.yaml",
+    "ego": {
+      "agent_type": "2e966a70-4a19-44b5-a5e7-64e00a7bc5de",
+      "start": {
+        "lane_id": "road_39_lane_0_1",
+        "offset": 30.27
+      },
+      "destination": {
+        "lane_id": "road_19_lane_0_1",
+        "offset": 26.86
+      }
+    },
+    "npcs": {
+      "waypoint": 2,
+      "npc_num": 1
+    },
+    "environment": {
+      "rain": 0,
+      "fog": 0,
+      "wetness": 0,
+      "cloudiness": 0,
+      "damage": 0,
+      "time": 0
+    },
+    "fixed_npc": {
+      "types": [
+        "Sedan"
+      ],
+      "routes": [
+        [
+          "road_30_lane_0_-1",
+          "road_31_lane_0_-1",
+          "road_789_lane_0_-1",
+          "road_32_lane_0_-1",
+          "road_33_lane_0_-1"
+        ]
+      ],
+      "waypoints": [
+        [
+          [
+            109.94,
+            5.556
+          ],
+          [
+            115.84,
+            5.556
+          ],
+          [
+            115.88,
+            5.556
+          ],
+          [
+            115.92,
+            5.556
+          ],
+          [
+            124.33,
+            5.556
+          ],
+          [
+            132.7,
+            5.556
+          ],
+          [
+            141.4,
+            5.556
+          ],
+          [
+            141.71,
+            5.556
+          ],
+          [
+            142.03,
+            5.556
+          ],
+          [
+            169.42,
+            0.0
+          ]
+        ]
+      ]
+    }
+  }
+]

@@ -1,0 +1,27 @@
+test_method: becov
+total_test_time: 60 # seconds (short smoke run)
+ego_behavior: 0
+
+# path config
+output_path: ./outputs/mock_town05_law24
+scenario_basic_file: ./data/town05/Law24_basic_info.json
+scenario_route_file: ./data/town05/town05_routes.json
+map_data: ./data/town05/town05_routes.json
+
+# simulator
+max_sim_time: 200
+lgsvl_map: Town05
+apollo_map: Town05
+sim_mode: mock # mock = no real CARLA/Apollo
+
+# model
+window_size: 10
+cluster_num: 10
+threshold_coverage: 0.4
+feature_resample: linear
+
+# fuzzer
+init_seed_size: 4
+offset_mutation: 12
+speed_mutation: 6
+child_size: 1

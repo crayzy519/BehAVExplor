@@ -1,0 +1,7 @@
+    LAW_NAME =  "Oracle.benchmark.traffic_law-24"
+    LAW_ORACLE_ID = "rule-0"
+    LAW_CONTENT = "When overtaking a preceding vehicle, EGO should overtake from the left side."
+    DECISION_API_TYPE = "Overtake"
+    XODR_FILE_PATH = "ADSFuzzing/xodr/24_Town05.xodr"
+    CARLA_BASEMAP_PATH = "ADSFuzzing/utils/carla_base_map/Town05.bin"
+    MAP_NAME = "Town05"

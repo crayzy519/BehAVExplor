@@ -1,0 +1,52 @@
+[
+  {
+    "name": "Law56",
+    "map": "Town04",
+    "settings_yaml": "traffic_rule_BehAVExplor/Law56/settings.yaml",
+    "ego": {
+      "agent_type": "2e966a70-4a19-44b5-a5e7-64e00a7bc5de",
+      "start": {
+        "lane_id": "road_1184_lane_0_-3",
+        "offset": 41.94
+      },
+      "destination": {
+        "lane_id": "road_40_lane_0_-3",
+        "offset": 114.96
+      }
+    },
+    "npcs": {
+      "waypoint": 2,
+      "npc_num": 1
+    },
+    "environment": {
+      "rain": 0,
+      "fog": 0,
+      "wetness": 0,
+      "cloudiness": 0,
+      "damage": 0,
+      "time": 0
+    },
+    "fixed_npc": {
+      "types": [
+        "Sedan"
+      ],
+      "routes": [
+        [
+          "road_40_lane_0_-3"
+        ]
+      ],
+      "waypoints": [
+        [
+          [
+            3.47,
+            5.556
+          ],
+          [
+            120.41,
+            0.0
+          ]
+        ]
+      ]
+    }
+  }
+]

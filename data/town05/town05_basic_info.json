@@ -1,0 +1,29 @@
+[
+    {
+        "name": "town05_straight",
+        "map": "Town05",
+        "ego": {
+            "agent_type": "2e966a70-4a19-44b5-a5e7-64e00a7bc5de",
+            "start": {
+                "lane_id": "road_37_lane_0_-3",
+                "offset": 10
+            },
+            "destination": {
+                "lane_id": "road_37_lane_0_-3",
+                "offset": 854.2
+            }
+        },
+        "npcs": {
+            "waypoint": 4,
+            "npc_num": 6
+        },
+        "environment": {
+            "rain": 0,
+            "fog": 0,
+            "wetness": 0,
+            "cloudiness": 0,
+            "damage": 0,
+            "time": 0
+        }
+    }
+]

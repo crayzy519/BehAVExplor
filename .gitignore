@@ -1,0 +1,18 @@
+# Python venv
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Fuzzing outputs
+outputs/
+
+# macOS
+.DS_Store
+
+# Editor
+.cursor/
+
+# Real CARLA bridge (reference only, not part of this migration)
+carla_bridge/
+trace.json.txt

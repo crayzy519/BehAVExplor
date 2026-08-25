@@ -1,0 +1,30 @@
+[
+  {
+    "name": "Law5",
+    "map": "Town05",
+    "settings_yaml": "traffic_rule_BehAVExplor/Law5/settings.yaml",
+    "ego": {
+      "agent_type": "2e966a70-4a19-44b5-a5e7-64e00a7bc5de",
+      "start": {
+        "lane_id": "road_9_lane_0_-1",
+        "offset": 96.21
+      },
+      "destination": {
+        "lane_id": "road_24_lane_0_1",
+        "offset": 40.33
+      }
+    },
+    "npcs": {
+      "waypoint": 2,
+      "npc_num": 0
+    },
+    "environment": {
+      "rain": 0,
+      "fog": 0,
+      "wetness": 0,
+      "cloudiness": 0,
+      "damage": 0,
+      "time": 0
+    }
+  }
+]
